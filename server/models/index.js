@@ -1,6 +1,6 @@
 import sequelize from '../db.js';
 import User from './User.js';
-import Recipe from './Recipe.js';
+// import Recipe from './Recipe.js';
 import Like from './Like.js';
 import Comment from './Comment.js';
 import Message from './Message.js';

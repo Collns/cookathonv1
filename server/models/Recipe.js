@@ -1,11 +1,35 @@
-import { DataTypes } from 'sequelize'
-import sequelize from '../config/db.js'
+import { DataTypes } from 'sequelize';
+import sequelize from '../db.js';
 
 const Recipe = sequelize.define('Recipe', {
-  title: { type: DataTypes.STRING, allowNull: false },
-  ingredients: { type: DataTypes.ARRAY(DataTypes.STRING), allowNull: false },
-  instructions: { type: DataTypes.TEXT, allowNull: false },
-  approved: { type: DataTypes.BOOLEAN, defaultValue: false }
-})
+  title: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  ingredients: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
+  instructions: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  },
+  likeCount: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  approved: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false // AI will set this to true if approved
+  },
+  userId: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  }
+},
+{
+  timestamps: true,
+  tableName: 'recipes'
+});
 
-export default Recipe
+export default Recipe;
