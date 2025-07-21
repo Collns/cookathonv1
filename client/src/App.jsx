@@ -5,8 +5,8 @@ import './index.css'
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <h1 className="text-5xl font-bold text-blue-600">🔥 RECIPY COMING SOON!!!</h1>
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center ">
+      <h1 className="text-5xl font-bold text-blue-600">🔥 RECIPIA COMING SOON!!!</h1>
     </div>
   )
 }
