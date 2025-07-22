@@ -1,4 +1,4 @@
-import sequelize from '../db.js';
+import sequelize from '../config/db.js';
 import User from './User.js';
 import Recipe from './Recipe.js'
 import Like from './Like.js';

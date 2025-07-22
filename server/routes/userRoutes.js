@@ -25,4 +25,23 @@ router.post('/', async (req, res) => {
   }
 })
 
+router.put('/:id', async (req, res) => {
+  const { username, email, password } = req.body;
+
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Optional fields
+    if (username) user.username = username;
+    if (email) user.email = email;
+    if (password) user.password = password; // bcrypt hook will hash it
+
+    await user.save();
+    res.json({ message: 'Profile updated', user });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+})
+
 export default router

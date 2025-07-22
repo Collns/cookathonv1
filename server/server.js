@@ -1,6 +1,8 @@
 import dotenv from 'dotenv'
 dotenv.config()
 
+import './models/index.js' // this ensures associations are registered before syncing
+
 import express from 'express'
 import cors from 'cors'
 import sequelize from './config/db.js'
@@ -8,6 +10,8 @@ import recipeRoutes from './routes/recipeRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import messageRoutes from './routes/messageRoutes.js'
 import likeRoutes from './routes/likeRoutes.js'
+import commentRoutes from './routes/commentRoutes.js'
+import aiRoutes from './routes/aiRoutes.js'
 
 
 const app = express()
@@ -26,6 +30,8 @@ app.use('/api/recipes', recipeRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/likes', likeRoutes)
+app.use('/api/comments', commentRoutes)
+app.use('/api/ai', aiRoutes)
 
 app.get('/', (req, res) => res.send('✅ API is running'))
 

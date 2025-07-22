@@ -1,5 +1,6 @@
 import express from 'express'
 import Recipe from '../models/Recipe.js'
+import { formatText } from '../utils/formatter.js';
 
 const router = express.Router()
 
@@ -13,12 +14,28 @@ router.get('/', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { title, ingredients, instructions } = req.body
   try {
-    const newRecipe = await Recipe.create({ ...req.body })
-    res.status(201).json(newRecipe)
+    const { title, ingredients, instructions, userId } = req.body;
+
+    if (!title || !ingredients || !instructions || !userId) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // 🧼 Format and sanitize
+    const formattedTitle = formatText(title);
+    const formattedInstructions = formatText(instructions);
+    const cleanedIngredients = ingredients.trim().toLowerCase();
+
+    const recipe = await Recipe.create({
+      title: formattedTitle,
+      ingredients: cleanedIngredients,
+      instructions: formattedInstructions,
+      userId
+    });
+
+    res.status(201).json(recipe);
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    res.status(500).json({ error: err.message });
   }
 })
 

@@ -29,7 +29,7 @@ const Recipe = sequelize.define('Recipe', {
 },
 {
   timestamps: true,
-  tableName: 'recipes'
+  tableName: 'Recipes'
 });
 
 export default Recipe;

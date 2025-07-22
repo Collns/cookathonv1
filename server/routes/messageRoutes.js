@@ -1,5 +1,6 @@
 import express from 'express'
 import Message from '../models/Message.js'
+import { Op } from 'sequelize';
 
 const router = express.Router()
 
@@ -15,20 +16,25 @@ router.post('/', async (req, res) => {
 })
 
 // GET: Fetch all messages (optionally filter by user)
-router.get('/', async (req, res) => {
-  const { userId } = req.query
+router.get('/:receiverId', async (req, res) => {
+  const { receiverId } = req.params;
+  const { userId } = req.query;
+
   try {
-    const messages = userId
-      ? await Message.findAll({
-          where: {
-            [Op.or]: [{ senderId: userId }, { receiverId: userId }]
-          }
-        })
-      : await Message.findAll()
-    res.json(messages)
+    const messages = await Message.findAll({
+      where: {
+        [Op.or]: [
+          { senderId: userId, receiverId },
+          { senderId: receiverId, receiverId: userId }
+        ]
+      },
+      order: [['createdAt', 'ASC']]
+    });
+
+    res.json(messages);
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: err.message });
   }
-})
+});
 
 export default router
