@@ -1,5 +1,5 @@
 import express from 'express'
-import Recipe from 'server\models\Recipe.js'
+import Recipe from '../models/Recipe.js'
 
 const router = express.Router()
 
@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const { title, ingredients, instructions } = req.body
   try {
-    const newRecipe = await Recipe.create({ title, ingredients, instructions })
+    const newRecipe = await Recipe.create({ ...req.body })
     res.status(201).json(newRecipe)
   } catch (err) {
     res.status(400).json({ error: err.message })
