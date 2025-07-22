@@ -1,6 +1,7 @@
 import express from 'express'
 import Recipe from '../models/Recipe.js'
 import { formatText } from '../utils/formatter.js';
+import { containsBadWords } from '../utils/moderate.js';
 
 const router = express.Router()
 
@@ -26,17 +27,26 @@ router.post('/', async (req, res) => {
     const formattedInstructions = formatText(instructions);
     const cleanedIngredients = ingredients.trim().toLowerCase();
 
+    // 🚨 Moderate
+    const isInappropriate = containsBadWords(formattedTitle) || containsBadWords(formattedInstructions) || containsBadWords(cleanedIngredients);
+
     const recipe = await Recipe.create({
       title: formattedTitle,
       ingredients: cleanedIngredients,
       instructions: formattedInstructions,
-      userId
+      userId,
+      approved: !isInappropriate  // 🚫 Flag if it contains bad content
     });
 
-    res.status(201).json(recipe);
+    res.status(201).json({
+      recipe,
+      message: isInappropriate
+        ? 'Recipe submitted but flagged for review due to inappropriate content.'
+        : 'Recipe successfully submitted and approved.'
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-})
+});
 
 export default router

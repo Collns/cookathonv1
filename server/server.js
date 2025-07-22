@@ -12,6 +12,7 @@ import messageRoutes from './routes/messageRoutes.js'
 import likeRoutes from './routes/likeRoutes.js'
 import commentRoutes from './routes/commentRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
+import adminRoutes from './routes/adminRoutes.js'
 
 
 const app = express()
@@ -32,6 +33,7 @@ app.use('/api/messages', messageRoutes)
 app.use('/api/likes', likeRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/ai', aiRoutes)
+app.use('/api/admin', adminRoutes)
 
 app.get('/', (req, res) => res.send('✅ API is running'))
 
