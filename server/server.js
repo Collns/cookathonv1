@@ -5,6 +5,9 @@ import express from 'express'
 import cors from 'cors'
 import sequelize from './config/db.js'
 import recipeRoutes from './routes/recipeRoutes.js'
+import userRoutes from './routes/userRoutes.js'
+import messageRoutes from './routes/messageRoutes.js'
+import likeRoutes from './routes/likeRoutes.js'
 
 
 const app = express()
@@ -20,6 +23,9 @@ sequelize.authenticate()
   .catch(err => console.error('❌ DB connection error:', err.message))
 
 app.use('/api/recipes', recipeRoutes)
+app.use('/api/users', userRoutes)
+app.use('/api/messages', messageRoutes)
+app.use('/api/likes', likeRoutes)
 
 app.get('/', (req, res) => res.send('✅ API is running'))
 
