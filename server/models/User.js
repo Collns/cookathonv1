@@ -19,7 +19,17 @@ const User = sequelize.define('User', {
   password: {
     type: DataTypes.STRING,
     allowNull: false
+  },
+  banned: {
+  type: DataTypes.BOOLEAN,
+  defaultValue: false,
+  },
+  flagged: {
+  type: DataTypes.BOOLEAN,
+  defaultValue: false,
   }
+
+
 }, {
   timestamps: true,
   hooks: {

@@ -58,4 +58,19 @@ router.delete('/recipes/:id', async (req, res) => {
   }
 })
 
+// PATCH: Ban a user
+router.patch('/users/:id/ban', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id)
+    if (!user) return res.status(404).json({ error: 'User not found' })
+
+    user.banned = true
+    await user.save()
+
+    res.json({ message: 'User banned', user })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 export default router
