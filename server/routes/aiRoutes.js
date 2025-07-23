@@ -1,19 +1,21 @@
 import express from 'express'
-import { recommendRecipes } from '../utils/recommend.js'
+import { recommendRecipesAI } from '../utils/recommend.js'
 const router = express.Router()
 
 // POST /api/ai/generate
 router.post('/recommend', async (req, res) => {
   const { ingredients } = req.body
-  if (!ingredients || !Array.isArray(ingredients)) {
-    return res.status(400).json({ error: 'Ingredients must be an array of strings' })
+
+  if (!ingredients) {
+    return res.status(400).json({ error: 'Ingredients required' })
   }
 
   try {
-    const recipes = await recommendRecipesByIngredients(ingredients)
-    res.json(recipes)
+    const results = await recommendRecipesAI(ingredients)
+    res.json(results)
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error('🧠 Recommend route error:', err.message)
+    res.status(500).json({ error: 'AI recommendation failed' })
   }
 })
 
