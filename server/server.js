@@ -13,12 +13,14 @@ import likeRoutes from './routes/likeRoutes.js'
 import commentRoutes from './routes/commentRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
+import chatbotRoutes from './routes/chatbotRoutes.js'
 import rateLimiter from './middleware/rateLimiter.js'
 import logger from './middleware/logger.js'
 import errorHandler from './middleware/errorHandler.js'
 import bodySanitizer from './middleware/bodySanitizer.js'
 import auth from './middleware/auth.js'
 import {validateRecipe} from './middleware/validator.js'
+
 
 
 
@@ -48,7 +50,7 @@ app.use('/api/likes', likeRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/admin', adminRoutes)
-
+app.use('/api/chatbot', chatbotRoutes)
 app.use(errorHandler)
 
 
