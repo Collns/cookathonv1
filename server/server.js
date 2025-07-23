@@ -13,11 +13,25 @@ import likeRoutes from './routes/likeRoutes.js'
 import commentRoutes from './routes/commentRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
+import rateLimiter from './middleware/rateLimiter.js'
+import logger from './middleware/logger.js'
+import errorHandler from './middleware/errorHandler.js'
+import bodySanitizer from './middleware/bodySanitizer.js'
+import auth from './middleware/auth.js'
+import {validateRecipe} from './middleware/validator.js'
+
+
 
 
 const app = express()
 app.use(cors())
 app.use(express.json())
+app.use(logger)
+app.use(bodySanitizer)
+app.use(rateLimiter)
+// app.use(auth)
+
+
 
 sequelize.authenticate()
   .then(() => {
@@ -27,13 +41,17 @@ sequelize.authenticate()
   .then(() => console.log('✅ Models synced'))
   .catch(err => console.error('❌ DB connection error:', err.message))
 
-app.use('/api/recipes', recipeRoutes)
+app.use('/api/recipes', validateRecipe, recipeRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/likes', likeRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/admin', adminRoutes)
+
+app.use(errorHandler)
+
+
 
 app.get('/', (req, res) => res.send('✅ API is running'))
 
