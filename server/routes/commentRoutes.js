@@ -1,34 +1,21 @@
-import express from 'express'
-import { moderateComment } from '../middleware/moderate.js'
-import Comment from '../models/Comment.js'
+// Updated commentRoutes.js to integrate DeepSeek moderation middleware
+import express from 'express';
+import { createComment, getCommentsByRecipe, getCommentsByUser } from '../controller/commentsController.js';
+import { moderateComment } from '../middleware/moderate.js';
 
-const router = express.Router()
+const router = express.Router();
 
-// POST: add and moderate a comment 
-router.post(
-  '/',
-  moderateComment,
-  async (req, res) => {
-    const { content, userId, recipeId } = req.body
-    const comment = await Comment.create({ content, userId, recipeId })
-    res.status(201).json(comment)
-  }
-)
+// 🚫 Moderate comment content using DeepSeek before saving
+router.post('/', moderateComment, createComment);
 
-// GET: Get all comments (optional filter by recipeId)
+// ✅ Get comments by recipeId or userId
 router.get('/', async (req, res) => {
   const { recipeId, userId } = req.query;
 
-  try {
-    const where = {};
-    if (recipeId) where.recipeId = recipeId;
-    if (userId) where.userId = userId;
+  if (recipeId) return getCommentsByRecipe(req, res);
+  if (userId) return getCommentsByUser(req, res);
 
-    const comments = await Comment.findAll({ where });
-    res.json(comments);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+  return res.status(400).json({ error: 'recipeId or userId required' });
 });
 
-export default router
+export default router;

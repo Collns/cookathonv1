@@ -1,70 +1,78 @@
+// Updated utils/formatter.js with DeepSeek
 import axios from 'axios'
 import Recipe from '../models/Recipe.js'
 import dotenv from 'dotenv'
 dotenv.config()
 
-const HF_HEADERS = {
-  Authorization: `Bearer ${process.env.HF_API_KEY}`,
+const deepseekURL = 'https://api.deepseek.com/v1/chat/completions'
+const deepseekHeaders = {
+  'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+  'Content-Type': 'application/json'
 }
-const HF_URL = 'https://api-inference.huggingface.co/models/gpt2'
 
-
-/** 
- * AI: Formats recipe instructions clearly
- */
 export async function formatInstructionsAI(text) {
   try {
     const response = await axios.post(
-      HF_URL,
+      deepseekURL,
       {
-        inputs: `Format this recipe step-by-step with clear spacing:\n\n${text}`,
-        options: { wait_for_model: true },
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful chef. When given unclear or messy cooking instructions, return a clean, numbered, step-by-step recipe with clear punctuation.'
+          },
+          {
+            role: 'user',
+            content: `Please format this recipe properly:\n\n${text}`
+          }
+        ],
+        max_tokens: 150,
+        temperature: 0.6
       },
-      { headers: HF_HEADERS }
+      { headers: deepseekHeaders }
     )
-    return response.data?.[0]?.generated_text.trim() || text
+
+    const aiResponse = response.data.choices?.[0]?.message?.content?.trim()
+    return aiResponse || text
   } catch (err) {
-    console.error('❌ AI formatting failed:', err.message)
+    console.error('❌ DeepSeek formatting error:', {
+      status: err.response?.status,
+      data: err.response?.data,
+      message: err.message
+    })
     return text
   }
 }
 
-/**
- * AI: Generates a catchy recipe title from ingredients or instructions
- */
 export async function generateTitleAI(rawText) {
   try {
-    const response = await axios.post(
-      HF_URL,
-      {
-        inputs: `Create a short, catchy cooking recipe title from this:\n\n${rawText}`,
-        options: { wait_for_model: true },
-      },
-      { headers: HF_HEADERS }
-    )
-    return response.data?.[0]?.generated_text.trim() || 'Untitled Recipe'
+    const response = await axios.post(deepseekURL, {
+      model: 'deepseek-chat',
+      messages: [
+        { role: 'system', content: 'You are a cooking assistant that writes short catchy recipe titles.' },
+        { role: 'user', content: `Create a short, catchy cooking recipe title from this:\n\n${rawText}` }
+      ],
+      max_tokens: 30,
+      temperature: 0.7
+    }, { headers: deepseekHeaders })
+
+    return response.data.choices[0]?.message?.content.trim() || 'Untitled Recipe'
   } catch (err) {
-    console.error('❌ AI title generation failed:', err.message)
+    console.error('❌ DeepSeek title gen error:', err.message)
     return 'Untitled Recipe'
   }
 }
 
-
-/**
- * AI: Check for duplicate recipes using semantic similarity (basic form)
- */
 export async function isDuplicateRecipe(content) {
   try {
     const allRecipes = await Recipe.findAll()
     const lower = content.toLowerCase()
-
-    return allRecipes.some(r => {
-      const matchTitle = r.title?.toLowerCase().includes(lower)
-      const matchInstructions = r.instructions?.toLowerCase().includes(lower)
-      return matchTitle || matchInstructions
-    })
+    return allRecipes.some(r =>
+      r.title?.toLowerCase().includes(lower) ||
+      r.instructions?.toLowerCase().includes(lower)
+    )
   } catch (err) {
-    console.error('❌ Duplicate check failed:', err.message)
+    console.error('❌ Duplicate check error:', err.message)
     return false
   }
 }

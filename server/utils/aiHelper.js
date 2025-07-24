@@ -1,25 +1,48 @@
-import axios from 'axios'
-import dotenv from 'dotenv'
-dotenv.config()
+import axios from 'axios';
+import axiosRetry from 'axios-retry';
+
+// Optional: retry failed DeepSeek calls up to 2 times
+axiosRetry(axios, { retries: 2, retryDelay: axiosRetry.exponentialDelay });
 
 export const askAI = async (message) => {
   try {
-    const sousChefPrompt = "You are a helpful sous chef. Only answer cooking, recipe, or kitchen questions. If the question is not about cooking, politely say you can only help with cooking.";
-    const fullMessage = `${sousChefPrompt}\nUser: ${message}`;
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
-      { inputs: fullMessage },
+      'https://api.deepseek.com/v1/chat/completions',
+      {
+        model: 'deepseek-chat',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are Recipia, a helpful and concise sous chef. Only answer cooking-related questions using fewer than 50 words.'
+          },
+          { role: 'user', content: message }
+        ],
+        max_tokens: 100,
+        temperature: 0.7
+      },
       {
         headers: {
-          Authorization: `Bearer ${process.env.HFC_API_KEY}`,
+          Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
           'Content-Type': 'application/json'
-        }
+        },
+        timeout: 10000
       }
     );
 
-    return response.data.generated_text || 'Sorry, I didn’t catch that.';
-  } catch (err) {
-    console.error('❌ Hugging Face AI error:', err.message);
-    return 'Oops! Something went wrong with the AI.';
+    const rawText = response?.data?.choices?.[0]?.message?.content || '';
+    const cleanText = rawText
+      .replace(/\n\n###.*$/, '')     // Strip markdown headers if present
+      .replace(/\s+/g, ' ')          // Normalize spacing
+      .trim();
+
+    return cleanText || "Hmm, I couldn’t come up with anything. Try again!";
+  } catch (error) {
+    console.error('❌ DeepSeek API Error:', {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+
+    return "The AI chef is busy. Please try again in a minute!";
   }
-}
+};

@@ -1,43 +1,37 @@
-// utils/moderate.js
+// Updated utils/moderate.js with DeepSeek AI
 import axios from 'axios'
 import dotenv from 'dotenv'
 dotenv.config()
 
-const HF_API_URL = 'https://api-inference.huggingface.co/models/unitary/toxic-bert'
+const deepseekHeaders = {
+  Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+  'Content-Type': 'application/json'
+}
+const deepseekURL = 'https://api.deepseek.com/v1/chat/completions'
 
 export async function isToxic(text) {
-  console.log('📩 Incoming content for moderation:', text)
+  if (!text || typeof text !== 'string') return false
 
-  if (!text || typeof text !== 'string') {
-    console.log('⚠️ No valid text provided.')
-    return false
-  }
+  const prompt = `Check if this message contains offensive, hateful or toxic language. Respond with just YES or NO.
+
+Text:
+${text}`
 
   try {
-    console.log('🌐 Sending request to Hugging Face...')
-    const response = await axios.post(
-      HF_API_URL,
-      { inputs: text },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.HF_API_KEY}`,
-        },
-      }
-    )
+    const response = await axios.post(deepseekURL, {
+      model: 'deepseek-chat',
+      messages: [
+        { role: 'system', content: 'You are a strict content moderator. Hwile moderating allow vulgar expressions unless used in an insultive context.' },
+        { role: 'user', content: prompt }
+      ],
+      max_tokens: 5,
+      temperature: 0.3
+    }, { headers: deepseekHeaders })
 
-    console.log('✅ HF API call succeeded.')
-    const predictions = response.data?.[0] || []
-    console.log('📦 Raw prediction array:', predictions)
-
-    const toxic = predictions.find(i => i.label.toLowerCase() === 'toxicity')
-    console.log('🤖 Extracted verdict:', toxic?.label, toxic?.score)
-
-    const isToxic = toxic?.score > 0.7
-    console.log(`🧠 Final decision: ${isToxic ? '🚫 BLOCKED' : '✅ ALLOWED'}`)
-
-    return isToxic
+    const verdict = response.data.choices[0]?.message?.content.trim().toLowerCase()
+    return verdict.startsWith('yes')
   } catch (err) {
-    console.error('🛑 Hugging Face API failed:', err.message)
+    console.error('❌ DeepSeek moderation failed:', err.message)
     return false
   }
 }

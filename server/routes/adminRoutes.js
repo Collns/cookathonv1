@@ -73,4 +73,14 @@ router.patch('/users/:id/ban', async (req, res) => {
   }
 })
 
+// GET all users
+router.get('/users', async (req, res) => {
+  try {
+    const users = await User.findAll()
+    res.json(users)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
 export default router
