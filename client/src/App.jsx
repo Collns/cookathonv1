@@ -1,12 +1,17 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './index.css'
+import { Suspense } from "react";
+import { Outlet } from "react-router-dom";
+import BottomNav from "./components/BottomNav.jsx";
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center ">
-      <h1 className="text-5xl font-bold text-blue-600">🔥 RECIPIA COMING SOON!!!</h1>
+    <div className="min-h-screen flex flex-col bg-white">
+      <main className="flex-1">
+        <Suspense fallback={<p className="text-center mt-10">Loading...</p>}>
+          {/* If a route fails to match, nothing shows; the NotFound route above fixes that */}
+          <Outlet />
+        </Suspense>
+      </main>
+      <BottomNav />
     </div>
-  )
+  );
 }

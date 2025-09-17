@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Safe-area + bottom nav spacing */
+:root { 
+  --safe-bottom: env(safe-area-inset-bottom); 
+}
+
+body { 
+  padding-bottom: calc(56px + var(--safe-bottom));
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}

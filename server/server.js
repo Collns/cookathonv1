@@ -51,7 +51,10 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/chatbot', chatbotRoutes)
 app.use(errorHandler)
 
-
+app.use(cors({
+  origin: 'http://localhost:5173', // Your Vite frontend
+  credentials: true
+}))
 
 app.get('/', (req, res) => res.send('✅ API is running'))
 
