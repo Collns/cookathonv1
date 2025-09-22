@@ -24,14 +24,16 @@ import {validateRecipe} from './middleware/validator.js'
 
 
 const app = express()
-app.use(cors())
 app.use(express.json())
 app.use(logger)
 app.use(bodySanitizer)
-app.use(rateLimiter)
+//app.use(rateLimiter)
 // app.use(auth)
 
-
+app.use(cors({
+  origin: 'http://localhost:5173', // Vite frontend
+  credentials: true
+}))
 
 sequelize.authenticate()
   .then(() => {
@@ -41,7 +43,7 @@ sequelize.authenticate()
   .then(() => console.log('✅ Models synced'))
   .catch(err => console.error('❌ DB connection error:', err.message))
 
-app.use('/api/recipes', validateRecipe, recipeRoutes)
+app.use('/api/recipes', recipeRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/messages', messageRoutes)
 app.use('/api/likes', likeRoutes)
@@ -51,10 +53,7 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/chatbot', chatbotRoutes)
 app.use(errorHandler)
 
-app.use(cors({
-  origin: 'http://localhost:5173', // Your Vite frontend
-  credentials: true
-}))
+
 
 app.get('/', (req, res) => res.send('✅ API is running'))
 

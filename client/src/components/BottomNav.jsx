@@ -1,29 +1,34 @@
-// BottomNav.jsx
-import { NavLink } from "react-router-dom";
-
-const Item = ({ to, label }) => (
-  <NavLink
-    to={to}
-    className={({ isActive }) =>
-      "flex flex-col items-center justify-center px-4 py-2 text-xs " +
-      (isActive ? "text-brand-600" : "text-neutral-600")
-    }
-  >
-    <span className="w-5 h-5 rounded border border-current mb-1 inline-block" />
-    {label}
-  </NavLink>
-);
+import { Link, useLocation } from "react-router-dom";
 
 export default function BottomNav() {
+  const { pathname } = useLocation();
+
+  const navStyle = {
+    position: "fixed",
+    bottom: 0,
+    left: 0,
+    width: "100%",
+    display: "flex",
+    justifyContent: "space-around",
+    alignItems: "center",
+    padding: "10px 0",
+    borderTop: "1px solid #ddd",
+    background: "#fff",
+    fontSize: "14px",
+  };
+
+  const linkStyle = (active) => ({
+    color: active ? "#2563eb" : "#444",
+    fontWeight: active ? "600" : "400",
+    textDecoration: "none",
+  });
+
   return (
-    <nav className="sticky bottom-0 border-t bg-white/80 backdrop-blur">
-      <div className="mx-auto max-w-5xl grid grid-cols-5">
-        <Item to="/" label="Feed" />
-        <Item to="/search" label="Search" />
-        <Item to="/new" label="New" />
-        <Item to="/pantry" label="Pantry" />
-        <Item to="/messages" label="Messages" /> {/* Fixed from "DMs" */}
-      </div>
+    <nav style={navStyle}>
+      <Link to="/" style={linkStyle(pathname === "/")}>Home</Link>
+      <Link to="/souschef" style={linkStyle(pathname === "/ai")}>Sous Chef</Link>
+      <Link to="/chatbot" style={linkStyle(pathname === "/chatbot")}>Chatbot</Link>
+      <Link to="/admin" style={linkStyle(pathname === "/admin")}>Admin</Link>
     </nav>
   );
 }

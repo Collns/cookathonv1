@@ -1,72 +1,73 @@
-import express from 'express'
-import Like from '../models/Like.js'
-import Recipe from '../models/Recipe.js'
-import { Op } from 'sequelize'
+import express from "express";
+import Like from "../models/Like.js";
+import Recipe from "../models/Recipe.js";
 
-const router = express.Router()
+const router = express.Router();
 
 // POST: Like a recipe
-router.post('/', async (req, res) => {
-  const { userId, recipeId } = req.body
+router.post("/", async (req, res) => {
+  const { userId, recipeId } = req.body;
+
   try {
-    const [like, created] = await Like.findOrCreate({ where: { userId, recipeId } })
+    // prevent duplicate likes
+    const [like, created] = await Like.findOrCreate({
+      where: { userId, recipeId },
+    });
 
     if (created) {
-      // Optionally increment likeCount
-      await Recipe.increment('likeCount', { where: { id: recipeId } })
+      // increment cached likeCount in Recipe
+      await Recipe.increment("likeCount", { where: { id: recipeId } });
     }
 
-    res.status(201).json({ liked: created })
+    res.status(201).json({
+      success: true,
+      liked: created,
+      message: created ? "Recipe liked." : "Already liked.",
+    });
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    console.error("❌ Like error:", err.message);
+    res.status(400).json({ error: err.message });
   }
-})
+});
 
 // DELETE: Unlike a recipe
-router.delete('/', async (req, res) => {
-  const { userId, recipeId } = req.body
+router.delete("/", async (req, res) => {
+  const { userId, recipeId } = req.body;
+
   try {
-    const deleted = await Like.destroy({ where: { userId, recipeId } })
+    const deleted = await Like.destroy({ where: { userId, recipeId } });
 
     if (deleted) {
-      await Recipe.decrement('likeCount', { where: { id: recipeId } })
+      await Recipe.decrement("likeCount", { where: { id: recipeId } });
     }
 
-    res.json({ unliked: !!deleted })
+    res.json({
+      success: true,
+      unliked: !!deleted,
+      message: deleted ? "Recipe unliked." : "No like found.",
+    });
   } catch (err) {
-    res.status(400).json({ error: err.message })
+    console.error("❌ Unlike error:", err.message);
+    res.status(400).json({ error: err.message });
   }
-})
+});
 
-// GET: All likes by user (optional)
-router.get('/', async (req, res) => {
+// GET: likes for a recipe (or all if no recipeId)
+router.get("/", async (req, res) => {
+  const { recipeId } = req.query;
+
   try {
-    const recipes = await Recipe.findAll({
-      order: [['createdAt', 'DESC']]
-    })
+    if (recipeId) {
+      const likes = await Like.findAll({ where: { recipeId } });
+      return res.json(likes);
+    }
 
-    // Map recipeId => likeCount
-    const counts = await Like.findAll({
-      attributes: ['recipeId'],
-      raw: true
-    })
-
-    const likeMap = counts.reduce((acc, row) => {
-      acc[row.recipeId] = (acc[row.recipeId] || 0) + 1
-      return acc
-    }, {})
-
-    // Add likeCount dynamically
-    const recipesWithLikes = recipes.map(r => {
-      const recipe = r.toJSON()
-      recipe.likeCount = likeMap[recipe.id] || 0
-      return recipe
-    })
-
-    res.json(recipesWithLikes)
+    const likes = await Like.findAll();
+    res.json(likes);
   } catch (err) {
-    res.status(500).json({ error: err.message })
+    console.error("❌ Get likes error:", err.message);
+    res.status(500).json({ error: err.message });
   }
-})
+});
 
-export default router
+export default router;

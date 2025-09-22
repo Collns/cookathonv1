@@ -6,10 +6,11 @@ import {
   isDuplicateRecipe
 } from '../utils/formatter.js'
 import { recommendRecipesAI } from '../utils/recommend.js'
+import { validateRecipe } from '../middleware/validator.js' // ADD THIS IMPORT
 
 const router = express.Router()
 
-// GET: all recipes
+// GET: all recipes (NO validation needed)
 router.get('/', async (req, res) => {
   try {
     const recipes = await Recipe.findAll()
@@ -19,8 +20,8 @@ router.get('/', async (req, res) => {
   }
 })
 
-// POST: create + auto-format + check duplicate
-router.post('/', async (req, res) => {
+// POST: create + auto-format + check duplicate (WITH validation)
+router.post('/', validateRecipe, async (req, res) => { // ADD validateRecipe HERE
   try {
     let { title, ingredients, instructions, userId } = req.body
 
