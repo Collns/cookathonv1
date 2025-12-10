@@ -2,7 +2,7 @@ name: Build and publish Docker images to GHCR
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master" ]  # change if your main branch is named differently
   workflow_dispatch:
 
 permissions:
@@ -11,7 +11,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAMESPACE: collns   # GHCR namespace must be lowercase
+  IMAGE_NAMESPACE: collns   # GHCR requires lowercase
 
 jobs:
   build-and-push:
@@ -24,8 +24,8 @@ jobs:
       - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: Collns
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
       - name: Build and push backend image
@@ -35,7 +35,7 @@ jobs:
           file: ./server/Dockerfile
           push: true
           tags: |
-            ghcr.io/collns/cookathonv1-backend:latest
+            ghcr.io/${{ env.IMAGE_NAMESPACE }}/cookathonv1-backend:latest
 
       - name: Build and push frontend image
         uses: docker/build-push-action@v5
@@ -44,4 +44,4 @@ jobs:
           file: ./client/Dockerfile
           push: true
           tags: |
-            ghcr.io/collns/cookathonv1-frontend:latest
+            ghcr.io/${{ env.IMAGE_NAMESPACE }}/cookathonv1-frontend:latest
