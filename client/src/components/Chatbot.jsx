@@ -6,7 +6,7 @@ export default function Chatbot() {
   const [res, setRes] = useState(null);
 
   return (
-    <section>
+    <section >
       <h2>Chatbot</h2>
       <input value={msg} onChange={e => setMsg(e.target.value)} placeholder="Ask something..." />
       <button onClick={async () => setRes(await chatbot.ask(msg))}>Send</button>
