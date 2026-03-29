@@ -1,8 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config()
-
-import './models/index.js' // this ensures associations are registered before syncing
-
+import './models/index.js'
 import express from 'express'
 import cors from 'cors'
 import sequelize from './config/db.js'
@@ -19,29 +17,19 @@ import logger from './middleware/logger.js'
 import errorHandler from './middleware/errorHandler.js'
 import bodySanitizer from './middleware/bodySanitizer.js'
 import auth from './middleware/auth.js'
-import {validateRecipe} from './middleware/validator.js'
-
-
+import { validateRecipe } from './middleware/validator.js'
 
 const app = express()
+
 app.use(express.json())
 app.use(logger)
 app.use(bodySanitizer)
 //app.use(rateLimiter)
 // app.use(auth)
-
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite frontend
+  origin: 'http://localhost:5173',
   credentials: true
 }))
-
-sequelize.authenticate()
-  .then(() => {
-    console.log('✅ PostgreSQL connected')
-    return sequelize.sync()
-  })
-  .then(() => console.log('✅ Models synced'))
-  .catch(err => console.error('❌ DB connection error:', err.message))
 
 app.use('/api/recipes', recipeRoutes)
 app.use('/api/users', userRoutes)
@@ -53,9 +41,17 @@ app.use('/api/admin', adminRoutes)
 app.use('/api/chatbot', chatbotRoutes)
 app.use(errorHandler)
 
-
-
 app.get('/', (req, res) => res.send('✅ API is running'))
 
 const PORT = process.env.PORT || 5000
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`))
+
+// ✅ S1-01: app.listen() now fires only after DB is confirmed ready
+sequelize.authenticate()
+  .then(() => {
+    console.log('✅ PostgreSQL connected')
+    app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`))
+  })
+  .catch(err => {
+    console.error('❌ DB connection error:', err.message)
+    process.exit(1)
+  })
