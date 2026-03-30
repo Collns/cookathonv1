@@ -12,6 +12,7 @@ import commentRoutes from './routes/commentRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import chatbotRoutes from './routes/chatbotRoutes.js'
+import authRoutes from './routes/authRoutes.js';
 import rateLimiter from './middleware/rateLimiter.js'
 import logger from './middleware/logger.js'
 import errorHandler from './middleware/errorHandler.js'
@@ -21,15 +22,17 @@ import { validateRecipe } from './middleware/validator.js'
 
 const app = express()
 
-app.use(express.json())
-app.use(logger)
-app.use(bodySanitizer)
-//app.use(rateLimiter)
-// app.use(auth)
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true
 }))
+app.use(express.json())
+app.use(logger)
+app.use(bodySanitizer)
+app.use('/api/auth', authRoutes);
+app.use(rateLimiter)
+// app.use(auth)
+
 
 app.use('/api/recipes', recipeRoutes)
 app.use('/api/users', userRoutes)
@@ -45,7 +48,8 @@ app.get('/', (req, res) => res.send('✅ API is running'))
 
 const PORT = process.env.PORT || 5000
 
-// ✅ S1-01: app.listen() now fires only after DB is confirmed ready
+// ✅ S1-01: app.listen() fires only after DB is confirmed ready
+// ✅ S1-02: sequelize.sync() removed — migrations handle schema
 sequelize.authenticate()
   .then(() => {
     console.log('✅ PostgreSQL connected')
