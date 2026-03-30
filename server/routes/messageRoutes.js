@@ -1,12 +1,14 @@
 import express from 'express'
 import Message from '../models/Message.js'
-import { Op } from 'sequelize';
+import { Op } from 'sequelize'
+import auth from '../middleware/auth.js'
 
 const router = express.Router()
 
-// POST: Send a message
-router.post('/', async (req, res) => {
-  const { senderId, receiverId, content } = req.body
+// POST: auth required
+router.post('/', auth, async (req, res) => {
+  const { receiverId, content } = req.body
+  const senderId = req.user.id // ✅ S1-07: read from token not body
   try {
     const message = await Message.create({ senderId, receiverId, content })
     res.status(201).json(message)
@@ -15,11 +17,10 @@ router.post('/', async (req, res) => {
   }
 })
 
-// GET: Fetch all messages (optionally filter by user)
-router.get('/:receiverId', async (req, res) => {
-  const { receiverId } = req.params;
-  const { userId } = req.query;
-
+// GET: auth required
+router.get('/:receiverId', auth, async (req, res) => {
+  const { receiverId } = req.params
+  const userId = req.user.id // ✅ S1-07: read from token not body
   try {
     const messages = await Message.findAll({
       where: {
@@ -29,12 +30,11 @@ router.get('/:receiverId', async (req, res) => {
         ]
       },
       order: [['createdAt', 'ASC']]
-    });
-
-    res.json(messages);
+    })
+    res.json(messages)
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message })
   }
-});
+})
 
 export default router
