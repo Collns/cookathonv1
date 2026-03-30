@@ -1,5 +1,20 @@
 import dotenv from 'dotenv'
 dotenv.config()
+
+/**
+ * S1-04: Startup environment guard
+ * Checks that all required env vars are set before the server boots
+ * Prevents silent failures from missing API keys or DB credentials
+ * If any are missing, logs which ones and exits immediately
+ */
+const REQUIRED_ENV = ['JWT_SECRET', 'DATABASE_URL', 'DEEPSEEK_API_KEY', 'HF_API_KEY']
+const missing = REQUIRED_ENV.filter(key => !process.env[key])
+if (missing.length) {
+  console.error('❌ Missing required environment variables:', missing.join(', '))
+  console.error('   Copy .env.example to .env and fill in all values')
+  process.exit(1)
+}
+
 import './models/index.js'
 import express from 'express'
 import cors from 'cors'
