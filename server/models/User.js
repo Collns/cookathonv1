@@ -20,16 +20,19 @@ const User = sequelize.define('User', {
     type: DataTypes.STRING,
     allowNull: false
   },
+  role: {
+    type: DataTypes.ENUM('user', 'admin'),
+    defaultValue: 'user',
+    allowNull: false
+  },
   banned: {
-  type: DataTypes.BOOLEAN,
-  defaultValue: false,
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   },
   flagged: {
-  type: DataTypes.BOOLEAN,
-  defaultValue: false,
+    type: DataTypes.BOOLEAN,
+    defaultValue: false
   }
-
-
 }, {
   timestamps: true,
   hooks: {
