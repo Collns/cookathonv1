@@ -18,6 +18,7 @@ if (missing.length) {
 import './models/index.js'
 import express from 'express'
 import cors from 'cors'
+import timeout from 'connect-timeout'
 import sequelize from './config/db.js'
 import recipeRoutes from './routes/recipeRoutes.js'
 import userRoutes from './routes/userRoutes.js'
@@ -42,6 +43,15 @@ app.use(cors({
   credentials: true
 }))
 app.use(express.json())
+
+/**
+ * S1-09: Global 30-second request timeout
+ * If any request (especially AI calls to DeepSeek/HuggingFace) hangs,
+ * this kills it after 30 seconds instead of blocking indefinitely
+ * Individual AI call timeouts (S1-13) are shorter — this is the backstop
+ */
+app.use(timeout('30s'))
+
 app.use(logger)
 app.use(bodySanitizer)
 app.use('/api/auth', authRoutes);
@@ -57,6 +67,15 @@ app.use('/api/comments', commentRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/chatbot', chatbotRoutes)
+
+/**
+ * S1-09: Timeout check — drops timed-out requests before they hit the error handler
+ * Without this, a timed-out request continues through middleware and may crash
+ */
+app.use((req, res, next) => {
+  if (!req.timedout) next()
+})
+
 app.use(errorHandler)
 
 app.get('/', (req, res) => res.send('✅ API is running'))
