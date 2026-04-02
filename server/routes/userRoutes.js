@@ -1,6 +1,7 @@
 import express from 'express'
 import User from '../models/User.js'
 import Recipe from '../models/Recipe.js'  // needed for including user's recipes in profile
+import auth from '../middleware/auth.js'  // will be used in S1-11 for protected profile updates
 
 const router = express.Router()
 
@@ -75,12 +76,17 @@ router.post('/', async (req, res) => {
  * S1-11 will add: auth middleware, ownership check (only you or admin can edit),
  * and safe response (exclude password from returned object)
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth , async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
     const user = await User.findByPk(req.params.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    // Ownership check — only the account owner or an admin can update this profile
+    if (req.user.id !== parseInt(req.params.id) && req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden — you can only update your own profile' })
+    }
 
     // Only update fields that were actually sent in the request
     if (username) user.username = username;
@@ -88,9 +94,15 @@ router.put('/:id', async (req, res) => {
     if (password) user.password = password;  // bcrypt beforeUpdate hook auto-hashes
 
     await user.save();
-    res.json({ message: 'Profile updated', user });
+
+      // Return only safe fields — never return the raw user object
+    res.json({
+      message: 'Profile updated',
+      user: { id: user.id, username: user.username, email: user.email, role: user.role }
+    })
   } catch (err) {
-    res.status(400).json({ error: err.message });
+      console.error('[users/PUT /:id] Error:', err.message)
+    res.status(400).json({ error: err.message })
   }
 })
 
